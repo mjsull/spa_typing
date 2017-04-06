@@ -139,7 +139,7 @@ def findPattern(infile, seqDict, letDict, typeDict, seqLengths):
             enriched_seqs = enrichSeq(qDict[i].upper(), 'CAACGCAATGGTTTCATCCA', 'GCTTTTGCAATGTCATTTACTG')
             seq_list += enriched_seqs
     if seq_list == []:
-        return ' no enriched sequence.'
+        return ['no enriched sequence.']
     if len(seq_list) > 1:
         sys.stderr.write(' more than one enriched sequence in ' + infile + '\n')
     rep_list = []
