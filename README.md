@@ -11,7 +11,7 @@ Prints spa type to stdout - egenomics letter combination and then the ridom spa 
 If multiple pcr products are found will print spa types for each product.
 
 Will download sparepeats.fasta and spatypes.txt from the ridom server to repository directory if files not provided or already in directory.
-
+```
 optional arguments:
 
   -r REPEAT_FILE, --repeat_file REPEAT_FILE
@@ -26,5 +26,5 @@ optional arguments:
                         Fasta file input.
                         
   --version             show program's version number and exit
-
+```
 written by mjsull.
