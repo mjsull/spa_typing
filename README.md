@@ -28,6 +28,15 @@ optional arguments:
   --version             show program's version number and exit
 
 ```
+
+## Installation
+Just clone this repository or download the python script
+
+Only requires python 2.7.x
+
+If this script is unable to download files over HTTP you will need to provide the repeat sequence and order files from the ridom spa server.
+
+
 ## How it works
 
 The script searches for 50bp to 5000bp sequences produced by the following primer sets
