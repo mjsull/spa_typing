@@ -40,7 +40,7 @@ CAACGCAATGGTTTCATCCA, GCTTTTGCAATGTCATTTACTG
 
 If an enriched sequence is found by a primer set, subsequent primer sets are not used.
 
-Then the repeats and repeat orders found on http://spaserver2.ridom.de/ are used to identify the spa type of each enriched sequence.
+The repeat sequences and repeat orders found on http://spaserver2.ridom.de/ are used to identify the spa type of each enriched sequence.
 
 Ridom spa type and the egenomics repeat sequence are then reported back to the user.
 
