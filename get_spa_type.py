@@ -5,14 +5,14 @@ import os
 from itertools import groupby
 import urllib
 
-
+# reverse translate a DNA sequence
 def revseq(seq):
     transtab = string.maketrans('atcgATCG', 'tagcTAGC')
     seq = seq[::-1]
     seq = seq.translate(transtab)
     return seq
 
-
+# create a dictionary of sequences
 def fasta_dict(fasta_name):
     """
     given a fasta file. yield dict of header, sequence
@@ -29,6 +29,8 @@ def fasta_dict(fasta_name):
                 seqDict[header] = seq
     return seqDict
 
+# simulate pcr on a sequence 
+# takes sequences, forward pcr template and reverse pcr template
 def enrichSeq(seq, fortemp, revtemp):
     index = 0
     found = None
@@ -77,7 +79,7 @@ def enrichSeq(seq, fortemp, revtemp):
                 out_list.append(revseq(enriched_seq))
     return out_list
 
-
+# Read in the data from the ridom server - if program can't find files, download
 def getSpaTypes(reps, orders):
     rep_dir = os.path.dirname(os.path.realpath(__file__))
     if reps is None:
@@ -119,10 +121,11 @@ def getSpaTypes(reps, orders):
             typeDict[pattern] = st
     return seqDict, letDict, typeDict, seqLengths
 
-
+# Find the spa type
 def findPattern(infile, seqDict, letDict, typeDict, seqLengths):
     qDict = fasta_dict(infile)
     seq_list = []
+    # progress through a set of primes looking for an enriched sequence
     for i in qDict:
         enriched_seqs = enrichSeq(qDict[i].upper(), 'TAAAGACGATCCTTCGGTGAG', 'CAGCAGTAGTGCCGTTTGCTT')
         seq_list += enriched_seqs
