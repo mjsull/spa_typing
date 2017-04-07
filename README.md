@@ -1,4 +1,4 @@
-get_spa_type.py: Get spa types
+===get_spa_type.py: Get spa types===
 
 Version: 0.1.0
 License: GPLv3
