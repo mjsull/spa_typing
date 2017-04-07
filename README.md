@@ -26,5 +26,24 @@ optional arguments:
                         Fasta file input.
                         
   --version             show program's version number and exit
+
 ```
+## How it works
+
+The script searches for 50bp to 5000bp sequences produced by the following primer sets
+```
+TAAAGACGATCCTTCGGTGAG, CAGCAGTAGTGCCGTTTGCTT
+AGACGATCCTTCGGTGAGC, GCTTTTGCAATGTCATTTACTG
+ATAGCGTGATTTTGCGGTT, CTAAATATAAATAATGTTGTCACTTGGA
+CAACGCAATGGTTTCATCCA, GCTTTTGCAATGTCATTTACTG
+```
+
+If an enriched sequence is found by a primer set, subsequent primer sets are not used.
+
+Then the repeats and repeat orders found on http://spaserver2.ridom.de/ are used to identify the spa type of each enriched sequence.
+
+Ridom spa type and the egenomics repeat sequence are then reported back to the user.
+
+
+
 written by mjsull.
