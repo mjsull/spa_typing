@@ -4,6 +4,7 @@ import argparse
 import os
 from itertools import groupby
 import urllib
+import glob
 
 # reverse translate a DNA sequence
 def revseq(seq):
@@ -201,12 +202,27 @@ Will download sparepeats.fasta and spatypes.txt to repository directory if files
 
 
 parser.add_argument('-r', '--repeat_file', action='store', help='List of spa repeats (http://spa.ridom.de/dynamic/sparepeats.fasta)')
-parser.add_argument('-o', '--repeat_order_file', action='store', help='List spa types and order of repeats (http://spaserver2.ridom.de/dynamic/spatypes.txt)')
-parser.add_argument('-f', '--fasta', action='store', help='Fasta file input.')
+parser.add_argument('-o', '--repeat_order_file', action='store', help='List spa types and order of repeats '
+                                                                      '(http://spaserver2.ridom.de/dynamic/spatypes.txt)')
+parser.add_argument('-f', '--fasta', action='store', nargs='+', help='List of one or more fasta files.')
+parser.add_argument('-g', '--glob', action='store', help='Uses unix style pathname expansion to run spa typing on all files. '
+                                                         'If your shell autoexpands wildcards use -f.')
 parser.add_argument('--version', action='version', version='%(prog)s 0.1.0')
 
 args = parser.parse_args()
 
 seqDict, letDict, typeDict, seqLengths = getSpaTypes(args.repeat_file, args.repeat_order_file)
-the_out = findPattern(args.fasta, seqDict, letDict, typeDict, seqLengths)
-sys.stdout.write('Spa type:\t' + '\t'.join(the_out) + '\n')
+
+if not args.glob is None and not args.fasta is None:
+    sys.exit('Please provide script with either a list of one or more fasta files, or a glob.')
+elif not args.glob is None:
+    fasta_list = glob.glob(args.glob)
+elif not args.fasta is None:
+    fasta_list = args.fasta
+else:
+    sys.exit('Please provide get_spa_type.py with either a fasta file (-f) or glob (-g).')
+
+sys.stdout.write('FILENAME\tEGENOMICS_SPA_TYPE\tRIDOM_SPA_TYPE\n')
+for i in fasta_list:
+    the_out = findPattern(i, seqDict, letDict, typeDict, seqLengths)
+    sys.stdout.write('Spa type:\t' + '\t'.join(the_out) + '\n')
