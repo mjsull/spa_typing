@@ -3,7 +3,7 @@ import string
 import argparse
 import os
 from itertools import groupby
-import urllib
+import urllib.request
 import glob
 
 # reverse translate a DNA sequence
@@ -22,8 +22,8 @@ def fasta_dict(fasta_name):
     with open(fasta_name) as fh:
         faiter = (x[1] for x in groupby(fh, lambda line: line[0] == ">"))
         for header in faiter:
-            header = header.next()[1:].strip()
-            seq = "".join(s.strip() for s in faiter.next())
+            header = header.__next__()[1:].strip()
+            seq = "".join(s.strip() for s in faiter.__next__())
             if header in seqDict:
                 sys.exit('FASTA contains multiple entries with the same name')
             else:
@@ -86,13 +86,13 @@ def getSpaTypes(reps, orders):
     if reps is None:
         reps = os.path.join(rep_dir, 'sparepeats.fasta')
         if not os.path.exists(reps):
-            urllib.urlretrieve('http://spa.ridom.de/dynamic/sparepeats.fasta', reps)
+            urllib.request.urlretrieve('http://spa.ridom.de/dynamic/sparepeats.fasta', reps)
         if not os.path.exists(reps):
             sys.exit('Could not download http://spa.ridom.de/dynamic/sparepeats.fasta, download manually and use -r flag')
     if orders is None:
         orders = os.path.join(rep_dir, 'spatypes.txt')
         if not os.path.exists(orders):
-            urllib.urlretrieve('http://spa.ridom.de/dynamic/spatypes.txt', orders)
+            urllib.request.urlretrieve('http://spa.ridom.de/dynamic/spatypes.txt', orders)
         if not os.path.exists(orders):
             sys.exit('Could not download http://spa.ridom.de/dynamic/spatypes.txt, download manually and use -p flag')
     seqDict = {}
@@ -123,29 +123,34 @@ def getSpaTypes(reps, orders):
     return seqDict, letDict, typeDict, seqLengths
 
 # Find the spa type
-def findPattern(infile, seqDict, letDict, typeDict, seqLengths):
+def findPattern(infile, seqDict, letDict, typeDict, seqLengths, enrich=True):
     qDict = fasta_dict(infile)
-    seq_list = []
-    # progress through a set of primes looking for an enriched sequence
-    for i in qDict:
-        enriched_seqs = enrichSeq(qDict[i].upper(), 'TAAAGACGATCCTTCGGTGAG', 'CAGCAGTAGTGCCGTTTGCTT')
-        seq_list += enriched_seqs
-    if seq_list == []:
+    if enrich:
+        seq_list = []
+        # progress through a set of primes looking for an enriched sequence
         for i in qDict:
-            enriched_seqs = enrichSeq(qDict[i].upper(), 'AGACGATCCTTCGGTGAGC', 'GCTTTTGCAATGTCATTTACTG')
+            enriched_seqs = enrichSeq(qDict[i].upper(), 'TAAAGACGATCCTTCGGTGAG', 'CAGCAGTAGTGCCGTTTGCTT')
             seq_list += enriched_seqs
-    if seq_list == []:
+        if seq_list == []:
+            for i in qDict:
+                enriched_seqs = enrichSeq(qDict[i].upper(), 'AGACGATCCTTCGGTGAGC', 'GCTTTTGCAATGTCATTTACTG')
+                seq_list += enriched_seqs
+        if seq_list == []:
+            for i in qDict:
+                enriched_seqs = enrichSeq(qDict[i].upper(), 'ATAGCGTGATTTTGCGGTT', 'CTAAATATAAATAATGTTGTCACTTGGA')
+                seq_list += enriched_seqs
+        if seq_list == []:
+            for i in qDict:
+                enriched_seqs = enrichSeq(qDict[i].upper(), 'CAACGCAATGGTTTCATCCA', 'GCTTTTGCAATGTCATTTACTG')
+                seq_list += enriched_seqs
+        if seq_list == []:
+            return ['no enriched sequence.']
+        if len(seq_list) > 1:
+            sys.stderr.write(' more than one enriched sequence in ' + infile + '\n')
+    else:
+        seq_list = []
         for i in qDict:
-            enriched_seqs = enrichSeq(qDict[i].upper(), 'ATAGCGTGATTTTGCGGTT', 'CTAAATATAAATAATGTTGTCACTTGGA')
-            seq_list += enriched_seqs
-    if seq_list == []:
-        for i in qDict:
-            enriched_seqs = enrichSeq(qDict[i].upper(), 'CAACGCAATGGTTTCATCCA', 'GCTTTTGCAATGTCATTTACTG')
-            seq_list += enriched_seqs
-    if seq_list == []:
-        return ['no enriched sequence.']
-    if len(seq_list) > 1:
-        sys.stderr.write(' more than one enriched sequence in ' + infile + '\n')
+            seq_list.append(qDict[i])
     rep_list = []
     for i in seq_list:
         index = 0
@@ -207,6 +212,8 @@ parser.add_argument('-o', '--repeat_order_file', action='store', help='List spa 
 parser.add_argument('-f', '--fasta', action='store', nargs='+', help='List of one or more fasta files.')
 parser.add_argument('-g', '--glob', action='store', help='Uses unix style pathname expansion to run spa typing on all files. '
                                                          'If your shell autoexpands wildcards use -f.')
+parser.add_argument("-s", '--skip_enrich', action="store_true", default=False, help="Skip enrichment.")
+parser.add_argument("-c", "--clean_output", action="store_true", default=False, help="Make output clean")
 parser.add_argument('--version', action='version', version='%(prog)s 0.1.0')
 
 args = parser.parse_args()
@@ -222,7 +229,11 @@ elif not args.fasta is None:
 else:
     sys.exit('Please provide get_spa_type.py with either a fasta file (-f) or glob (-g).')
 
-sys.stdout.write('FILENAME\tEGENOMICS_SPA_TYPE\tRIDOM_SPA_TYPE\n')
+if not args.clean_output:
+    sys.stdout.write('FILENAME\tEGENOMICS_SPA_TYPE\tRIDOM_SPA_TYPE\n')
 for i in fasta_list:
-    the_out = findPattern(i, seqDict, letDict, typeDict, seqLengths)
-    sys.stdout.write('Spa type:\t' + '\t'.join(the_out) + '\n')
+    the_out = findPattern(i, seqDict, letDict, typeDict, seqLengths, not args.skip_enrich)
+    if not args.clean_output:
+        sys.stdout.write('Spa type:\t' + '\t'.join(the_out) + '\n')
+    else:
+        sys.stdout.write('\t'.join(the_out) + '\n')

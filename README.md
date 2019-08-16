@@ -25,6 +25,8 @@ optional arguments:
   -g GLOB, --glob GLOB  Uses unix style pathname expansion to run spa typing
                         on all files. If your shell autoexpands wildcards use
                         -f.
+  -s, --skip_enrich     Skip enrichment (for already enriched (sanger) DNA).
+  -c, --clean_output    Make output clean
   --version             show program's version number and exit
 
 
